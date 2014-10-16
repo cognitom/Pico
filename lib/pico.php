@@ -65,7 +65,7 @@ class Pico {
 		$this->run_hooks('content_parsed', array(&$content)); // Depreciated @ v0.8
 		
 		// Get all the pages
-		$pages = $this->get_pages($settings['base_url'], $settings['pages_order_by'], $settings['pages_order'], $settings['excerpt_length']);
+		$pages = $this->get_pages($settings['base_url'], $settings['pages_order_by'], $settings['pages_order'], $settings['excerpt_length'], $settings['excerpt_word_count']);
 		$prev_page = array();
 		$current_page = array();
 		$next_page = array();
@@ -196,7 +196,8 @@ class Pico {
 			'twig_config' => array('cache' => false, 'autoescape' => false, 'debug' => false),
 			'pages_order_by' => 'alpha',
 			'pages_order' => 'asc',
-			'excerpt_length' => 50
+			'excerpt_length' => 50,
+			'excerpt_word_count' => true,
 		);
 
 		if(is_array($config)) $config = array_merge($defaults, $config);
@@ -213,7 +214,7 @@ class Pico {
 	 * @param string $order order "asc" or "desc"
 	 * @return array $sorted_pages an array of pages
 	 */
-	protected function get_pages($base_url, $order_by = 'alpha', $order = 'asc', $excerpt_length = 50)
+	protected function get_pages($base_url, $order_by = 'alpha', $order = 'asc', $excerpt_length = 50, $excerpt_word_count = true)
 	{
 		global $config;
 		
@@ -246,7 +247,9 @@ class Pico {
 				'date' => isset($page_meta['date']) ? $page_meta['date'] : '',
 				'date_formatted' => isset($page_meta['date']) ? date($config['date_format'], strtotime($page_meta['date'])) : '',
 				'content' => $page_content,
-				'excerpt' => $this->limit_words(strip_tags($page_content), $excerpt_length)
+				'excerpt' => $excerpt_word_count
+					? $this->limit_words(strip_tags($page_content), $excerpt_length)
+					: mb_substr(strip_tags($page_content), 0, $excerpt_length)
 			);
 
 			// Extend the data provided with each page by hooking into the data array
